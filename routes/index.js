@@ -2,7 +2,10 @@
 const router = require("express").Router();
 const upload = require("../middlewares/multer");
 const { createProject, getAllProjects, getProjectById } = require("../controllers/projectController");
+const { sendFormContact } = require("../controllers/formController")
 
+
+//proyectos
 router.get("/proyectos", getAllProjects);
 router.get("/proyectos/:id", getProjectById);
 router.post(
@@ -13,5 +16,8 @@ router.post(
   ]),
   createProject
 );
+
+//contacto
+router.post("/enviar/formulario", sendFormContact)
 
 module.exports = router;
