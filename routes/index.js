@@ -1,12 +1,9 @@
 const router = require("express").Router();
+const upload = require("../middlewares/multer")
+const { createProject, getAllProjects } = require("../controllers/projectController");
 
-router.get("/", (req, res) => {
-    res.send({ mensaje: "hola desde el backend" });
-});
 
-router.post("/", (req, res) => {
-    const { nombre } = req.body;
-    res.send(nombre);
-});
+router.get("/proyectos", getAllProjects);
+router.post("/crear/proyecto", upload.array("gallery",10), createProject);
 
 module.exports = router;
