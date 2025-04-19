@@ -26,6 +26,18 @@ const getAllProjects = async (req, res) => {
     }
 };
 
+const getProjectById = async (req, res) => {
+    try {
+        const project = await Project.findById(req.params.id);
+        if (!project) {
+            return res.status(404).json({ mensaje: 'Proyecto no encontrado', status: 404 });
+        }
+        return res.status(200).json({ project });
+    } catch (error) {
+        return res.status(500).json({ mensaje: 'Error al buscar el proyecto', status: 500 });
+    }
+};
+
 const createProject = async (req, res) => {
     try {
         const { title, description, category, details } = req.body;
@@ -82,5 +94,6 @@ const createProject = async (req, res) => {
 
 module.exports = {
     getAllProjects,
+    getProjectById,
     createProject
 };

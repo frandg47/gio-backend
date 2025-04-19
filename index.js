@@ -22,7 +22,7 @@ cloudinary.config({
 });
 
 //configuracion rutas
-app.use(process.env.API, router);
+app.use("/", router);
 
 //puerto
 const port = process.env.PORT;
