@@ -7,9 +7,11 @@ const imageSchema = new mongoose.Schema({
   },
   public_id: {
     type: String,
-    required: true,
+    required: false,  
+    default: "",
   },
 });
+
 
 const projectSchema = new mongoose.Schema({
   title: {
@@ -18,10 +20,10 @@ const projectSchema = new mongoose.Schema({
     trim: true,
   },
   coverImage: {
-    type: imageSchema, // usa el sub-esquema
+    type: imageSchema,
     required: true,
   },
-  gallery: [imageSchema], // arreglo de imágenes con url y public_id
+  gallery: [imageSchema], 
   description: {
     type: String,
     trim: true,
