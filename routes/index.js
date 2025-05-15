@@ -17,13 +17,7 @@ router.post(
   createProject
 );
 router.put(
-  "/editar/proyecto/:id",
-  upload.fields([
-    { name: "coverImage", maxCount: 1 },
-    { name: "gallery", maxCount: 20 }
-  ]),
-  putProject
-);
+  "/editar/proyecto/:id", putProject);
 router.put(
   "/editar/proyecto/:id/actualizar-galeria",
   upload.fields([

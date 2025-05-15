@@ -73,12 +73,6 @@ const putProject = async (req, res) => {
   try {
     const { title, description, category, details } = req.body;
 
-    if (!title || !req.files?.coverImage || req.files.coverImage.length === 0) {
-      return res
-        .status(400)
-        .json({ mensaje: "Faltan datos obligatorios", status: 400 });
-    }
-
     const existingProject = await Project.findById(req.params.id);
     if (!existingProject) {
       return res
@@ -86,22 +80,7 @@ const putProject = async (req, res) => {
         .json({ mensaje: "Proyecto no encontrado", status: 404 });
     }
 
-    const coverFile = req.files.coverImage[0];
-    const coverResult = await cloudinary.uploader.upload(coverFile.path);
-    fs.unlinkSync(coverFile.path);
-
-    const gallery = [];
-    if (req.files.gallery) {
-      for (const file of req.files.gallery) {
-        const result = await cloudinary.uploader.upload(file.path);
-        gallery.push(result.secure_url);
-        fs.unlinkSync(file.path);
-      }
-    }
-
     existingProject.title = title;
-    existingProject.coverImage = coverResult.secure_url;
-    existingProject.gallery = gallery;
     existingProject.description = description;
     existingProject.category = category;
     existingProject.details = details;
