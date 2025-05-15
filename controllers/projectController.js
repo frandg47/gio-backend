@@ -157,6 +157,67 @@ const removeGalleryImage = async (req, res) => {
   }
 };
 
+const updateGallery = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { existingImages } = req.body;
+
+    const project = await Project.findById(id);
+    if (!project) {
+      return res.status(404).json({
+        mensaje: "Proyecto no encontrado",
+        status: 404,
+      });
+    }
+
+    // 1. Eliminar de Cloudinary las imágenes que ya no están
+    const urlsAEliminar = project.gallery.filter(
+      (img) => !existingImages.some((url) => url === img.url)
+    );
+
+    for (const img of urlsAEliminar) {
+      if (img.public_id) {
+        await cloudinary.uploader.destroy(img.public_id);
+      }
+    }
+
+    // 2. Mantener las imágenes que siguen en la galería
+    const updatedGallery = project.gallery.filter((img) =>
+      existingImages.includes(img.url)
+    );
+
+    // 3. Subir nuevas imágenes si se enviaron
+    if (req.files?.gallery) {
+      for (const file of req.files.gallery) {
+        const result = await cloudinary.uploader.upload(file.path);
+        updatedGallery.push({
+          url: result.secure_url,
+          public_id: result.public_id,
+        });
+        fs.unlinkSync(file.path);
+      }
+    }
+
+    // 4. Actualizar y guardar el proyecto
+    project.gallery = updatedGallery;
+    await project.save();
+
+    return res.status(200).json({
+      mensaje: "Galería actualizada correctamente",
+      status: 200,
+      gallery: updatedGallery,
+    });
+  } catch (error) {
+    console.error("Error al actualizar galería:", error);
+    return res.status(500).json({
+      mensaje: "Error al actualizar la galería",
+      status: 500,
+      error: error.message,
+    });
+  }
+};
+
+
 const createProject = async (req, res) => {
   try {
     const { title, description, category, details } = req.body;
@@ -227,4 +288,5 @@ module.exports = {
   deleteProject,
   putProject,
   removeGalleryImage,
+  updateGallery
 };
