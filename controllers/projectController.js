@@ -160,7 +160,10 @@ const removeGalleryImage = async (req, res) => {
 const updateGallery = async (req, res) => {
   try {
     const { id } = req.params;
-    const { existingImages } = req.body;
+    const existingImages = JSON.parse(req.body.existingImages || "[]");
+
+    console.log("existingImages recibido:", req.body.existingImages);
+    console.log("existingImages parseado:", existingImages);
 
     const project = await Project.findById(id);
     if (!project) {
@@ -172,7 +175,7 @@ const updateGallery = async (req, res) => {
 
     // 1. Eliminar de Cloudinary las imágenes que ya no están
     const urlsAEliminar = project.gallery.filter(
-      (img) => !existingImages.some((url) => url === img.url)
+      (img) => !existingImages.some((existing) => existing.url === img.url)
     );
 
     for (const img of urlsAEliminar) {
@@ -183,18 +186,22 @@ const updateGallery = async (req, res) => {
 
     // 2. Mantener las imágenes que siguen en la galería
     const updatedGallery = project.gallery.filter((img) =>
-      existingImages.includes(img.url)
+      existingImages.some((existing) => existing.url === img.url)
     );
 
     // 3. Subir nuevas imágenes si se enviaron
     if (req.files?.gallery) {
-      for (const file of req.files.gallery) {
+      const files = Array.isArray(req.files.gallery)
+        ? req.files.gallery
+        : [req.files.gallery];
+
+      for (const file of files) {
         const result = await cloudinary.uploader.upload(file.path);
         updatedGallery.push({
           url: result.secure_url,
           public_id: result.public_id,
         });
-        fs.unlinkSync(file.path);
+        fs.unlinkSync(file.path); // Eliminar archivo local después de subir
       }
     }
 
@@ -216,7 +223,6 @@ const updateGallery = async (req, res) => {
     });
   }
 };
-
 
 const createProject = async (req, res) => {
   try {
@@ -288,5 +294,5 @@ module.exports = {
   deleteProject,
   putProject,
   removeGalleryImage,
-  updateGallery
+  updateGallery,
 };
