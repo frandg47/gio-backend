@@ -1,7 +1,7 @@
 // routes/index.js
 const router = require("express").Router();
 const upload = require("../middlewares/multer");
-const { createProject, getAllProjects, getProjectById, putProject, deleteProject, removeGalleryImage, updateGallery } = require("../controllers/projectController");
+const { createProject, getAllProjects, getProjectById, putProject, deleteProject, updateCoverImage, updateGallery } = require("../controllers/projectController");
 const { sendFormContact } = require("../controllers/formController")
 
 
@@ -31,8 +31,12 @@ router.put(
   ]),
   updateGallery
 );
+router.put(
+  "/editar/proyecto/:id/actualizar-portada",
+  upload.single("coverImage"),
+  updateCoverImage
+);
 router.delete("/eliminar/proyecto/:id", deleteProject);
-router.put("/proyectos/:id/remove-image", removeGalleryImage);
 
 
 //contacto

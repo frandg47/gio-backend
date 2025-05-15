@@ -122,41 +122,6 @@ const putProject = async (req, res) => {
   }
 };
 
-const removeGalleryImage = async (req, res) => {
-  try {
-    const { imageUrl } = req.body;
-    const { id } = req.params;
-
-    if (!imageUrl) {
-      return res
-        .status(400)
-        .json({ mensaje: "URL de imagen no proporcionada", status: 400 });
-    }
-
-    const project = await Project.findById(id);
-    if (!project) {
-      return res
-        .status(404)
-        .json({ mensaje: "Proyecto no encontrado", status: 404 });
-    }
-
-    project.gallery = project.gallery.filter((url) => url !== imageUrl);
-    await project.save();
-
-    return res.status(200).json({
-      mensaje: "Imagen eliminada correctamente de la galería",
-      status: 200,
-      gallery: project.gallery,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      mensaje: "Error al eliminar imagen de la galería",
-      status: 500,
-      error: error.message,
-    });
-  }
-};
-
 const updateGallery = async (req, res) => {
   try {
     const { id } = req.params;
@@ -221,6 +186,48 @@ const updateGallery = async (req, res) => {
       status: 500,
       error: error.message,
     });
+  }
+};
+
+const updateCoverImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ mensaje: "No se subió ninguna imagen" });
+    }
+
+    const project = await Project.findById(id);
+    if (!project) {
+      return res.status(404).json({ mensaje: "Proyecto no encontrado" });
+    }
+
+    // Eliminar imagen vieja de Cloudinary si existe
+    if (project.coverImage?.public_id) {
+      await cloudinary.uploader.destroy(project.coverImage.public_id);
+    }
+
+    // Subir nueva imagen
+    const result = await cloudinary.uploader.upload(req.file.path);
+
+    // Eliminar archivo local
+    fs.unlinkSync(req.file.path);
+
+    // Actualizar el proyecto
+    project.coverImage = {
+      url: result.secure_url,
+      public_id: result.public_id,
+    };
+
+    await project.save();
+
+    return res.status(200).json({
+      mensaje: "Imagen de portada actualizada correctamente",
+      coverImage: project.coverImage,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ mensaje: "Error al actualizar portada" });
   }
 };
 
@@ -293,6 +300,6 @@ module.exports = {
   createProject,
   deleteProject,
   putProject,
-  removeGalleryImage,
   updateGallery,
+  updateCoverImage,
 };
